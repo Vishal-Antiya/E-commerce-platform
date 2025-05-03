@@ -32,10 +32,14 @@
 		<module>src/Turbo/user-service</module>
 		<module>src/Turbo/product-service</module>
 		<module>src/Turbo/eureka-server</module>
+		<module>src/Turbo/order-service</module>
+		<module>src/Turbo/payment-service</module>
+		<module>src/Turbo/notification-service</module>
+		<module>src/Turbo/admin-service</module>
 	</modules>
 
 	<properties>
-		<java.version>21</java.version>
+		<java.version>24</java.version>
 	</properties>
 
 	<dependencyManagement>
@@ -43,8 +47,7 @@
 			<dependency>
 				<groupId>org.springframework.cloud</groupId>
 				<artifactId>spring-cloud-dependencies</artifactId>
-				<version>2021.0.8</version> <!-- or latest stable compatible with your Spring Boot version -->
-				<type>pom</type>
+				<version>2024.0.0</version> <type>pom</type>
 				<scope>import</scope>
 			</dependency>
 		</dependencies>
@@ -65,11 +68,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.cloud</groupId>
-			<artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>
 		</dependency>
 
 	</dependencies>
