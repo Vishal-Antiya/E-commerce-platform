@@ -4,10 +4,16 @@ server:
 spring:
   application:
     name: user-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_info?serverTimezone=UTC&useSSL=false
+    username: root # Or a specific user you create
+    password: Vishal@123Antiya # Your MySQL root password (or user password)
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
 
 eureka:
   client:
-    service-url:
-      defaultZone: http://localhost:8761
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true

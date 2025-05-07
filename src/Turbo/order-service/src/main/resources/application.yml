@@ -1,5 +1,5 @@
 server:
-  port: 8082 # Each service should have a unique port
+  port: 8083 # Each service should have a unique port
 
 spring:
   application:
@@ -7,7 +7,7 @@ spring:
 
 eureka:
   client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
