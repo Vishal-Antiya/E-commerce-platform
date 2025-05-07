@@ -14,6 +14,7 @@ spring:
     expiration: 600000 # Expiration time in milliseconds (e.g., 1 hour)
 
 
+
 eureka:
   client:
     serviceUrl:
