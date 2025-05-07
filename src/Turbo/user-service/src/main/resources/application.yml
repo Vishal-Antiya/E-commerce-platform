@@ -5,10 +5,13 @@ spring:
   application:
     name: user-service
   datasource:
-    url: jdbc:mysql://localhost:3306/user_info?serverTimezone=UTC&useSSL=false
+    url: jdbc:mysql://localhost:3306/user_info?allowPublicKeyRetrieval=true
     username: root # Or a specific user you create
     password: Vishal@123Antiya # Your MySQL root password (or user password)
     driver-class-name: com.mysql.cj.jdbc.Driver
+  jwt:
+    secret: lLHPdKCN0a4PbN7EQyqWTnJsniYvXsa7TCAQD/wkq+w=
+    expiration: 600000 # Expiration time in milliseconds (e.g., 1 hour)
 
 
 eureka:
