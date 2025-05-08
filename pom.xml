@@ -36,6 +36,7 @@
 		<module>src/Turbo/payment-service</module>
 		<module>src/Turbo/notification-service</module>
 		<module>src/Turbo/admin-service</module>
+		<module>src/Turbo/api-gateway-service</module>
 	</modules>
 
 	<properties>

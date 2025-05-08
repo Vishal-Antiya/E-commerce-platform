@@ -1,0 +1,26 @@
+server:
+  port: 8080 # Or any port you prefer for the gateway
+
+spring:
+  application:
+    name: api-gateway-service #  Service name for registration
+  cloud:
+    gateway:
+      routes:
+        - id: user-service-route
+          uri: lb://user-service # Route to user-service via Eureka
+          predicates:
+            - Path=/api/user/**,/api/auth/**
+    compatibility-verifier:
+        enabled: false # Disable compatibility verifier
+
+    # Eureka configuration
+    discovery:
+      client:
+        service-url:
+          defaultZone: http://localhost:8761/eureka/ #  Eureka server URL
+        register-with-eureka: true
+        fetch-registry: true
+  security:
+
+
