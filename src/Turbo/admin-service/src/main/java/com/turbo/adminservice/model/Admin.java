@@ -1,6 +1,7 @@
 package com.turbo.adminservice.model;
 
 import jakarta.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "users") // Maps to the "users" table in the "user_info" schema
@@ -25,6 +26,12 @@ public class Admin {
     @Column(name = "last_name", length = 50)
     private String lastName;
 
+    @ElementCollection(fetch = FetchType.EAGER) // Or LAZY, depending on your needs
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private List<String> roles;
+
+
     // Constructors
     public Admin() {
     }
@@ -37,6 +44,13 @@ public class Admin {
         this.lastName = lastName;
     }
 
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
     public Long getId() {
         return id;
     }

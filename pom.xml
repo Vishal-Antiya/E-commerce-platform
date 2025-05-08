@@ -33,8 +33,6 @@
 		<module>src/Turbo/product-service</module>
 		<module>src/Turbo/eureka-server</module>
 		<module>src/Turbo/order-service</module>
-		<module>src/Turbo/payment-service</module>
-		<module>src/Turbo/notification-service</module>
 		<module>src/Turbo/admin-service</module>
 		<module>src/Turbo/api-gateway-service</module>
 	</modules>

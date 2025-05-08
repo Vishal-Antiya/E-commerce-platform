@@ -11,6 +11,14 @@ spring:
           uri: http://127.0.0.1:8081 # Route to user-service via Eureka
           predicates:
             - Path=/api/user/**,/api/auth/**
+        - id: admin-service-route # Add a new route for admin-service
+          uri: http://127.0.0.1:8086 # Route to admin-service
+          predicates:
+              - Path=/api/admin/**
+        - id: product-service-route # Add a new route for admin-service
+          uri: http://127.0.0.1:8082 # Route to admin-service
+          predicates:
+            - Path=/api/products/**
     compatibility-verifier:
         enabled: false # Disable compatibility verifier
 

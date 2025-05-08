@@ -1,4 +1,4 @@
-package com.turbo.userservice.util;
+package com.turbo.adminservice.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -16,10 +16,7 @@ import java.util.function.Function;
 public class JwtUtil {
 
     @Value("${spring.jwt.secret}")  // Read the secret key from application.properties
-    private String secret;
-
-    @Value("${spring.jwt.expiration}") // Read the expiration time
-    private long jwtExpirationInMs;
+    private String SECRET_KEY; // Replace with a secure key
 
     // Generate token with roles
     public String generateToken(UserDetails userDetails) {
@@ -32,48 +29,48 @@ public class JwtUtil {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
+        byte[] decodedKey = java.util.Base64.getDecoder().decode(SECRET_KEY);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(subject)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs))
-                .signWith(SignatureAlgorithm.HS256, secret)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10)) // 10 hours
+                .signWith(io.jsonwebtoken.security.Keys.hmacShaKeyFor(decodedKey), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     // Extract username from token
     public String getUsernameFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
+        return extractClaim(token, Claims::getSubject);
     }
 
     // Extract roles from token
-    public List<String> getRolesFromToken(String token) {
-        Claims claims = getAllClaimsFromToken(token);
+    public List<String> extractRoles(String token) {
+        Claims claims = extractAllClaims(token);
         return claims.get("roles", List.class);
     }
 
     // Extract a specific claim
-    public <T> T getClaimFromToken(String token, Function<Claims, T> claimResolver) {
-        final Claims claims = getAllClaimsFromToken(token);
-        return claimResolver.apply(claims);
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
     }
 
-    // Retrieve all claims from token
-    private Claims getAllClaimsFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(secret)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
     }
 
     // Check if token is expired
-    private boolean isTokenExpired(String token) {
-        return getClaimFromToken(token, Claims::getExpiration).before(new Date());
+    public Boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
     }
 
     // Validate token
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }

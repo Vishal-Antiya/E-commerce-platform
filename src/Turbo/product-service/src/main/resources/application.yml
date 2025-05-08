@@ -4,6 +4,14 @@ server:
 spring:
   application:
     name: product-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_info?allowPublicKeyRetrieval=true # Changed to user_info
+    username: root # Your MySQL username
+    password: Vishal@123Antiya # Your MySQL password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jwt:
+    secret: lLHPdKCN0a4PbN7EQyqWTnJsniYvXsa7TCAQD/wkq+w=
+    expiration: 3600000 # Expiration time in milliseconds (e.g., 1 hour)
 
 eureka:
   client:
@@ -11,3 +19,5 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
+  instance:
+    prefer-ip-address: true

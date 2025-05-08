@@ -1,5 +1,5 @@
 server:
-  port: 8086
+  port: 8084
 
 spring:
   application:
@@ -9,6 +9,9 @@ spring:
     username: root # Or a specific user you create
     password: Vishal@123Antiya # Your MySQL root password (or user password)
     driver-class-name: com.mysql.cj.jdbc.Driver
+  jwt:
+    secret: lLHPdKCN0a4PbN7EQyqWTnJsniYvXsa7TCAQD/wkq+w= # Change this to a strong secret key
+    expiration: 3600000 # Token expiration time (e.g., 1 hour in ms)
 
 eureka:
   client:
@@ -16,3 +19,5 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
+  instance:
+    prefer-ip-address: true
