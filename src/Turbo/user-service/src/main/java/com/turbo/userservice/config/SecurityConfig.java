@@ -32,7 +32,7 @@ public class SecurityConfig {
         return http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for JWT
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**","/api/users/**","/api/auth/login","/api/users/create","api/users/allUsers").permitAll() // Allow /api/auth/ to be accessed without authentication
+                        .requestMatchers("/api/auth/**","/api/users/**","/api/auth/login","/api/users/create","api/users/allUsers","/swagger-ui/**","/v3/api-docs/**", "/webjars/**" ).permitAll() // Allow /api/auth/ to be accessed without authentication
                         .anyRequest().authenticated()       // All other endpoints require authentication
                 )
                 .sessionManagement(session -> session

@@ -24,7 +24,10 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/products/public/**").permitAll() //  Example: Allow public access to some endpoints
+                        .requestMatchers("/products/public/**",
+                                "/swagger-ui/**",      // Allow access to Swagger UI static resources
+                                "/v3/api-docs/**",     // Allow access to OpenAPI documentation
+                                "/webjars/**").permitAll() //  Example: Allow public access to some endpoints
                         .requestMatchers("/products/**").hasRole("ADMIN")  //  Example: Only ADMIN role can access products
                         .anyRequest().authenticated()
                 )

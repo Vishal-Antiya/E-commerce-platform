@@ -31,7 +31,12 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/admin/auth/**").permitAll() //  Allow admin auth
+                        .requestMatchers(
+                                "/api/admin/auth/**",
+                                "/swagger-ui/**",      // Allow access to Swagger UI static resources
+                                "/v3/api-docs/**",     // Allow access to OpenAPI documentation
+                                "/webjars/**"          // Allow access to webjars for Swagger UI (if used)
+                        ).permitAll() //  Allow admin auth and Swagger paths
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
