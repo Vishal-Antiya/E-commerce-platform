@@ -1,4 +1,19 @@
 package com.turbo.orderservice.repository;
 
-public class OrderRepository {
+import com.turbo.orderservice.model.Order;
+import com.turbo.orderservice.model.OrderStatus;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface OrderRepository extends JpaRepository<Order, Long> {
+
+    // Find a user's pending cart
+    Optional<Order> findByUserIdAndStatus(Long userId, OrderStatus status);
+
+    // Find all orders for a specific user
+    List<Order> findByUserId(Long userId);
 }

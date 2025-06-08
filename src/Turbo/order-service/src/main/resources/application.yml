@@ -1,13 +1,45 @@
 server:
-  port: 8083 # Each service should have a unique port
+  port: 8083 # Port for the Order Service
 
 spring:
   application:
-    name: order-service
+    name: order-service # Service name for Eureka
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_info?allowPublicKeyRetrieval=true
+    username: root
+    password: Vishal@123Antiya #MySQL root password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update # auto-create/update table schema based on entities
+    show-sql: true # Show SQL queries in logs
+    properties:
+      hibernate:
+        format_sql: true # Format SQL for readability
+  jwt:
+    secret: lLHPdKCN0a4PbN7EQyqWTnJsniYvXsa7TCAQD/wkq+w= # JWT secret
+    expiration: 3600000 # 1 hour in milliseconds
 
 eureka:
   client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-    fetch-registry: true
+    service-url:
+      defaultZone: http://localhost:8761/eureka/ # Eureka server URL
     register-with-eureka: true
+    fetch-registry: true
+  instance:
+    hostname: localhost # Or the actual hostname if deploying
+
+logging:
+  level:
+    root: INFO
+    com.turbo.orderservice: DEBUG # Set logging level for your application
+    org.hibernate.SQL: DEBUG # Show prepared SQL statements
+    org.hibernate.orm.jdbc.bind: TRACE # Show parameters bound to SQL statements
+  file:
+    name: logs/order-service.log # Optional: Configure log file output
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html # Swagger UI path
+    # If you want to disable the default API docs for the gateway, set:
+    # disable-swagger-default-url: true
