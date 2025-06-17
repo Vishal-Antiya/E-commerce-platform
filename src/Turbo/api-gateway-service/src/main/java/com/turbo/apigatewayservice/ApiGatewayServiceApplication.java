@@ -3,55 +3,79 @@ package com.turbo.apigatewayservice;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.gateway.route.RouteLocator;
-import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsWebFilter;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
+import java.util.List;
 
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableWebFluxSecurity
 public class ApiGatewayServiceApplication {
 
-    private static final Logger logger = LoggerFactory.getLogger(ApiGatewayServiceApplication.class);
-
     public static void main(String[] args) {
         SpringApplication.run(ApiGatewayServiceApplication.class, args);
-        logger.info("API Gateway Service started successfully!");
     }
 
     @Bean
-    public RouteLocator gatewayRoutes(RouteLocatorBuilder builder) {
-        logger.info("Configuring API Gateway routes...");
-        return builder.routes()
-                .route("user-service-route", r -> r
-                        .path("/api/user/**", "/api/auth/**")
-                        .uri("lb://user-service")
-                )
-                .route("admin-service-route", r -> r
-                        .path("/api/admin/**")
-                        .uri("lb://admin-service")
-                )
-                .route("product-service-route", r -> r
-                        .path("/api/products/**")
-                        .uri("lb://product-service")
-                )
-                .route("order-service-route", r -> r
-                        .path("/api/orders/**")
-                        .uri("lb://order-service")
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+        return http
+                .csrf(csrf -> csrf.disable()) // Disable CSRF for REST APIs
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
+                .authorizeExchange(exchange -> exchange
+                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight requests
+                        .pathMatchers("/api/auth/**", "/api/users/**", "/api/products/**").permitAll()
+                        .anyExchange().authenticated()
                 )
                 .build();
     }
 
     @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
-        http
-                .csrf(csrf -> csrf.disable()); // Disable CSRF for JWT (reactive)
-        logger.info("Configuring API Gateway Security: CSRF disabled.");
-        return http.build();
+    public CorsWebFilter corsWebFilter() {
+        return new CorsWebFilter(corsConfigurationSource());
+    }
+
+    @Bean
+    public UrlBasedCorsConfigurationSource corsConfigurationSource() {
+        final CorsConfiguration corsConfig = new CorsConfiguration();
+
+        // Allow multiple localhost variations
+        corsConfig.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:*",
+                "http://127.0.0.1:*",
+                "https://localhost:*",
+                "https://127.0.0.1:*"
+        ));
+
+        // Allow all common HTTP methods
+        corsConfig.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"
+        ));
+
+        // Allow all headers
+        corsConfig.setAllowedHeaders(List.of("*"));
+
+        // Allow credentials (important for authentication)
+        corsConfig.setAllowCredentials(true);
+
+        // Cache preflight response for 1 hour
+        corsConfig.setMaxAge(3600L);
+
+        // Expose common headers to frontend
+        corsConfig.setExposedHeaders(Arrays.asList(
+                "Authorization", "Content-Type", "X-Requested-With", "Accept",
+                "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"
+        ));
+
+        final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", corsConfig);
+        return source;
     }
 }

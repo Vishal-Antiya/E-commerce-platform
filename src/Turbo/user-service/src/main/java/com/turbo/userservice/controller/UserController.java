@@ -1,55 +1,3 @@
-//package com.turbo.userservice.controller;
-//
-//import com.turbo.userservice.model.User;
-//import com.turbo.userservice.service.UserService;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.*;
-//
-//import java.util.List;
-//import java.util.Optional;
-//
-//@RestController
-//@RequestMapping("/api/users")
-//public class UserController {
-//
-//    @Autowired
-//    private UserService userService;
-//
-//    @PostMapping("/create")
-//    public ResponseEntity<User> createUser(@RequestBody User user) {
-//        User createdUser = userService.createUser(user);
-//        return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
-//    }
-//
-//    @GetMapping("/{id}")
-//    public ResponseEntity<User> getUserById(@PathVariable Long id) {
-//        Optional<User> user = userService.getUserById(id);
-//        return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-//                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-//    }
-//
-////    @GetMapping("/allUsers")
-////    public ResponseEntity<List<User>> getAllUsers() {
-////        List<User> users = userService.getAllUsers();
-////        return new ResponseEntity<>(users, HttpStatus.OK);
-////    }
-//
-//    @GetMapping("/username/{username}")
-//    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
-//        Optional<User> user = userService.getUserByUsername(username);
-//        return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-//                .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
-//    }
-//
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-//        userService.deleteUser(id);
-//        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-//    }
-//}
-//
 package com.turbo.userservice.controller;
 
 import com.turbo.userservice.model.User;
@@ -120,6 +68,44 @@ public class UserController {
         Optional<User> user = userService.getUserByUsername(username);
         return user.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
                 .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @Operation(summary = "Update an existing user", description = "Updates the details of an existing user by ID. Requires authentication and appropriate roles.")
+    @ApiResponse(responseCode = "200", description = "User updated successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)))
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions")
+    @PutMapping("/{id}") // New PUT endpoint for updating users
+    public ResponseEntity<User> updateUser(
+            @Parameter(description = "ID of the user to update", required = true)
+            @PathVariable Long id,
+            @RequestBody User userDetails) {
+        User updatedUser = userService.updateUser(id, userDetails);
+        if (updatedUser != null) {
+            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @Operation(summary = "Update an existing user by username", description = "Updates the details of an existing user by username. Requires authentication and appropriate roles.")
+    @ApiResponse(responseCode = "200", description = "User updated successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = User.class)))
+    @ApiResponse(responseCode = "404", description = "User not found")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
+    @ApiResponse(responseCode = "403", description = "Forbidden: Insufficient permissions")
+    @PutMapping("/username/{username}") // New PUT endpoint using username
+    public ResponseEntity<User> updateUserByUsername(
+            @Parameter(description = "Username of the user to update", required = true)
+            @PathVariable String username,
+            @RequestBody User userDetails) {
+        User updatedUser = userService.updateUserByUsername(username, userDetails);
+        if (updatedUser != null) {
+            return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     @Operation(summary = "Delete a user", description = "Deletes a user by their ID")

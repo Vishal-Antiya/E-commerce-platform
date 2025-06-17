@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.slf4j.Logger; // Already imported
 import org.slf4j.LoggerFactory; // Already imported
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -66,6 +67,41 @@ public class UserService {
             return savedUser;
         }).orElseGet(() -> {
             logger.warn("User with ID: {} not found for update operation.", id);
+            return null;
+        });
+    }
+
+    @Transactional // Add Transactional annotation for this new method
+    public User updateUserByUsername(String username, User updatedUserDetails) {
+        logger.info("Attempting to update user with username: {}", username);
+        // Find the user by username first
+        return userRepository.findByUsername(username).map(existingUser -> {
+            // Apply updates to the existing user found by username
+            // Note: You might want to prevent changing the username itself via this endpoint
+            // if username is considered immutable after creation, or handle it carefully.
+            // For now, we allow it if provided in updatedUserDetails.
+            if (updatedUserDetails.getUsername() != null && !updatedUserDetails.getUsername().isEmpty()) {
+                existingUser.setUsername(updatedUserDetails.getUsername());
+            }
+            if (updatedUserDetails.getEmail() != null && !updatedUserDetails.getEmail().isEmpty()) {
+                existingUser.setEmail(updatedUserDetails.getEmail());
+            }
+            if (updatedUserDetails.getFirstName() != null && !updatedUserDetails.getFirstName().isEmpty()) {
+                existingUser.setFirstName(updatedUserDetails.getFirstName());
+            }
+            if (updatedUserDetails.getLastName() != null && !updatedUserDetails.getLastName().isEmpty()) {
+                existingUser.setLastName(updatedUserDetails.getLastName());
+            }
+            if (updatedUserDetails.getPasswordHash() != null && !updatedUserDetails.getPasswordHash().isEmpty()) {
+                // Only re-encode if a new password is provided
+                existingUser.setPasswordHash(passwordEncoder.encode(updatedUserDetails.getPasswordHash()));
+                logger.debug("Password updated for user username: {}", username);
+            }
+            User savedUser = userRepository.save(existingUser);
+            logger.info("User with username: {} updated successfully.", username);
+            return savedUser;
+        }).orElseGet(() -> {
+            logger.warn("User with username: {} not found for update operation.", username);
             return null;
         });
     }
