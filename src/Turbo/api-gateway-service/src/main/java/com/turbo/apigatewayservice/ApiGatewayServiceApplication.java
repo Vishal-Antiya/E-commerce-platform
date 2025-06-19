@@ -46,7 +46,7 @@ public class ApiGatewayServiceApplication {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration corsConfig = new CorsConfiguration();
 
-        // Allow multiple localhost variations
+        // Allow specific origins (update with your React app URL)
         corsConfig.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:*",
                 "http://127.0.0.1:*",
@@ -62,13 +62,13 @@ public class ApiGatewayServiceApplication {
         // Allow all headers
         corsConfig.setAllowedHeaders(List.of("*"));
 
-        // Allow credentials (important for authentication)
+        // Allow credentials
         corsConfig.setAllowCredentials(true);
 
-        // Cache preflight response for 1 hour
+        // Increase preflight cache time
         corsConfig.setMaxAge(3600L);
 
-        // Expose common headers to frontend
+        // Expose headers
         corsConfig.setExposedHeaders(Arrays.asList(
                 "Authorization", "Content-Type", "X-Requested-With", "Accept",
                 "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"
@@ -78,4 +78,5 @@ public class ApiGatewayServiceApplication {
         source.registerCorsConfiguration("/**", corsConfig);
         return source;
     }
+
 }
