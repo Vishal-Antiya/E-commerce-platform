@@ -17,7 +17,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,21 +31,20 @@ public class OrderController {
     @Autowired
     private OrderService orderService;
 
-    // Helper to get current authenticated user's ID
-    private Long getCurrentUserId() {
+    // Helper to get current authenticated user's username
+    private String getCurrentUserUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
             throw new IllegalStateException("User is not authenticated.");
         }
-        // Assuming your UserDetails contains the user's ID, or you can retrieve it from your User model
-        // For simplicity, we'll use the username as a stand-in for ID for now, or you'd fetch it from user-service
-        // In a real app, you'd likely have a custom UserDetails object holding the actual DB ID.
-        // For this example, let's assume the username IS the user ID as a string, or fetch it.
-        // A more robust solution would involve a custom UserDetails object that stores the userId.
-        // For now, let's mock it or assume simple UIDs.
-        // For demo purposes, we'll assume a dummy user ID of 1L for all authenticated users.
-        // You would typically extract the user ID from the JWT claims or query the user-service.
-        return 1L; // Placeholder: Replace with actual user ID from token/db
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else if (principal instanceof String) {
+            return (String) principal;
+        } else {
+            throw new IllegalStateException("Unable to extract username from authentication principal.");
+        }
     }
 
     @Operation(summary = "Add product to cart", description = "Adds a specified quantity of a product to the current user's shopping cart. Creates a cart if none exists.")
@@ -57,12 +55,11 @@ public class OrderController {
     @PostMapping("/cart/add")
     public ResponseEntity<?> addProductToCart(@RequestBody Map<String, Object> request) {
         try {
-            Long userId = getCurrentUserId(); // Get ID of the authenticated user
+            String userUsername = getCurrentUserUsername();
             Long productId = Long.valueOf(request.get("productId").toString());
             int quantity = Integer.parseInt(request.get("quantity").toString());
-
-            logger.info("API Request: Add product {} (quantity {}) to cart for user {}", productId, quantity, userId);
-            Order updatedCart = orderService.addProductToCart(userId, productId, quantity);
+            logger.info("API Request: Add product {} (quantity {}) to cart for user {}", productId, quantity, userUsername);
+            Order updatedCart = orderService.addProductToCart(userUsername, productId, quantity);
             return ResponseEntity.ok(updatedCart);
         } catch (NumberFormatException e) {
             logger.error("Invalid product ID or quantity format: {}", e.getMessage());
@@ -81,12 +78,11 @@ public class OrderController {
     @PutMapping("/cart/update")
     public ResponseEntity<?> updateProductQuantityInCart(@RequestBody Map<String, Object> request) {
         try {
-            Long userId = getCurrentUserId();
+            String userUsername = getCurrentUserUsername();
             Long productId = Long.valueOf(request.get("productId").toString());
             int quantity = Integer.parseInt(request.get("quantity").toString());
-
-            logger.info("API Request: Update product {} quantity to {} for user {}", productId, quantity, userId);
-            Order updatedCart = orderService.updateProductQuantityInCart(userId, productId, quantity);
+            logger.info("API Request: Update product {} quantity to {} for user {}", productId, quantity, userUsername);
+            Order updatedCart = orderService.updateProductQuantityInCart(userUsername, productId, quantity);
             return ResponseEntity.ok(updatedCart);
         } catch (NumberFormatException e) {
             logger.error("Invalid product ID or quantity format: {}", e.getMessage());
@@ -106,9 +102,9 @@ public class OrderController {
             @Parameter(description = "ID of the product to remove", required = true)
             @PathVariable Long productId) {
         try {
-            Long userId = getCurrentUserId();
-            logger.info("API Request: Remove product {} from cart for user {}", productId, userId);
-            Order updatedCart = orderService.removeProductFromCart(userId, productId);
+            String userUsername = getCurrentUserUsername();
+            logger.info("API Request: Remove product {} from cart for user {}", productId, userUsername);
+            Order updatedCart = orderService.removeProductFromCart(userUsername, productId);
             return ResponseEntity.ok(updatedCart);
         } catch (RuntimeException e) {
             logger.error("Error removing product from cart: {}", e.getMessage());
@@ -121,15 +117,15 @@ public class OrderController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Order.class)))
     @ApiResponse(responseCode = "404", description = "Cart not found")
     @GetMapping("/cart")
-    public ResponseEntity<Order> getCart() {
-        Long userId = getCurrentUserId();
-        logger.info("API Request: Get cart for user {}", userId);
-        Optional<Order> cart = orderService.getCart(userId);
+    public ResponseEntity<?> getCart() {
+        String userUsername = getCurrentUserUsername();
+        logger.info("API Request: Get cart for user {}", userUsername);
+        Optional<Order> cart = orderService.getCart(userUsername);
         return cart.map(value -> {
-            logger.info("Cart retrieved successfully for user {}", userId);
+            logger.info("Cart retrieved successfully for user {}", userUsername);
             return new ResponseEntity<>(value, HttpStatus.OK);
         }).orElseGet(() -> {
-            logger.warn("Cart not found for user {}", userId);
+            logger.warn("Cart not found for user {}", userUsername);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         });
     }
@@ -141,13 +137,13 @@ public class OrderController {
     @ApiResponse(responseCode = "404", description = "Cart not found")
     @PostMapping("/checkout")
     public ResponseEntity<?> checkoutCart() {
-            Long userId = getCurrentUserId(); // Changed
+        String userUsername = getCurrentUserUsername();
         try {
-            logger.info("API Request: Checkout cart for user {}", userId);
-            Order placedOrder = orderService.checkoutCart(userId);
+            logger.info("API Request: Checkout cart for user {}", userUsername);
+            Order placedOrder = orderService.checkoutCart(userUsername);
             return ResponseEntity.ok(placedOrder);
         } catch (RuntimeException e) {
-            logger.error("Error during checkout for user {}: {}", userId, e.getMessage());
+            logger.error("Error during checkout for user {}: {}", userUsername, e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
@@ -157,17 +153,17 @@ public class OrderController {
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = Order.class)))
     @ApiResponse(responseCode = "404", description = "Order not found or does not belong to user")
     @GetMapping("/{orderId}")
-    public ResponseEntity<Order> getOrderById(
+    public ResponseEntity<?> getOrderById(
             @Parameter(description = "ID of the order to retrieve", required = true)
             @PathVariable Long orderId) {
-        Long userId = getCurrentUserId();
-        logger.info("API Request: Get order {} for user {}", orderId, userId);
-        Optional<Order> order = orderService.getOrderById(orderId, userId);
+        String userUsername = getCurrentUserUsername();
+        logger.info("API Request: Get order {} for user {}", orderId, userUsername);
+        Optional<Order> order = orderService.getOrderById(orderId, userUsername);
         return order.map(value -> {
-            logger.info("Order {} retrieved successfully for user {}", orderId, userId);
+            logger.info("Order {} retrieved successfully for user {}", orderId, userUsername);
             return new ResponseEntity<>(value, HttpStatus.OK);
         }).orElseGet(() -> {
-            logger.warn("Order {} not found or does not belong to user {}", orderId, userId);
+            logger.warn("Order {} not found or does not belong to user {}", orderId, userUsername);
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         });
     }
@@ -177,11 +173,37 @@ public class OrderController {
             content = @Content(mediaType = "application/json",
                     schema = @Schema(type = "array", implementation = Order.class)))
     @GetMapping("/history")
-    public ResponseEntity<List<Order>> getOrdersByUserId() {
-        Long userId = getCurrentUserId();
-        logger.info("API Request: Get order history for user {}", userId);
-        List<Order> orders = orderService.getOrdersByUserId(userId);
-        logger.info("Retrieved {} orders for user {}", orders.size(), userId);
+    public ResponseEntity<?> getOrdersByUserId() {
+        String userUsername = getCurrentUserUsername();
+        logger.info("API Request: Get order history for user {}", userUsername);
+        List<Order> orders = orderService.getOrdersByUserId(userUsername);
+        logger.info("Retrieved {} orders for user {}", orders.size(), userUsername);
         return new ResponseEntity<>(orders, HttpStatus.OK);
     }
+
+    @Operation(summary = "Get all orders", description = "Retrieves a list of all orders made by all users.")
+    @ApiResponse(responseCode = "200", description = "Orders retrieved successfully",
+            content = @Content(mediaType = "application/json", schema = @Schema(type = "array", implementation = Order.class)))
+    @GetMapping
+    public ResponseEntity<List<Order>> getAllOrders() {
+        logger.info("API Request: Get all orders (admin endpoint)");
+        List<Order> orders = orderService.getAllOrders();
+        logger.info("Retrieved {} orders (admin endpoint)", orders.size());
+        return new ResponseEntity<>(orders, HttpStatus.OK);
+    }
+
+    @PutMapping("/{orderId}/status")
+    public ResponseEntity<?> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestBody Map<String, String> body
+    ) {
+        try {
+            String newStatus = body.get("status");
+            Order order = orderService.updateOrderStatus(orderId, newStatus);
+            return ResponseEntity.ok(order);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
 }

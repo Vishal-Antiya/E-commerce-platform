@@ -3,27 +3,26 @@ package com.turbo.orderservice.model;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import com.fasterxml.jackson.annotation.JsonManagedReference; // Import this
-
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "orders") // Table name for orders
+@Table(name = "orders")
 public class Order {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId; // The ID of the user who owns this order/cart
+    @Column(name = "username", nullable = false, length = 100)
+    private String username; // The username of the user who owns this order/cart
 
     @Column(nullable = false, length = 50)
-    @Enumerated(EnumType.STRING) // Store enum as String in DB
-    private OrderStatus status; // PENDING (for cart), PLACED, SHIPPED, DELIVERED, CANCELLED
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
@@ -36,87 +35,49 @@ public class Order {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    // Use JsonManagedReference on the "owning" side of the relationship
     @JsonManagedReference
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems = new ArrayList<>();
 
     // Constructors
     public Order() {
-        this.status = OrderStatus.PENDING; // Default status for a new cart
+        this.status = OrderStatus.PENDING;
         this.totalAmount = BigDecimal.ZERO;
     }
 
-    public Order(Long userId, OrderStatus status, BigDecimal totalAmount) {
-        this.userId = userId;
+    public Order(String username, OrderStatus status, BigDecimal totalAmount) {
+        this.username = username;
         this.status = status;
         this.totalAmount = totalAmount;
     }
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    public Long getUserId() {
-        return userId;
-    }
+    public OrderStatus getStatus() { return status; }
+    public void setStatus(OrderStatus status) { this.status = status; }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
+    public BigDecimal getTotalAmount() { return totalAmount; }
+    public void setTotalAmount(BigDecimal totalAmount) { this.totalAmount = totalAmount; }
 
-    public OrderStatus getStatus() {
-        return status;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public void setStatus(OrderStatus status) {
-        this.status = status;
-    }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-    public BigDecimal getTotalAmount() {
-        return totalAmount;
-    }
+    public List<OrderItem> getOrderItems() { return orderItems; }
+    public void setOrderItems(List<OrderItem> orderItems) { this.orderItems = orderItems; }
 
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public List<OrderItem> getOrderItems() {
-        return orderItems;
-    }
-
-    public void setOrderItems(List<OrderItem> orderItems) {
-        this.orderItems = orderItems;
-    }
-
-    // Helper method to add an order item
     public void addOrderItem(OrderItem item) {
         orderItems.add(item);
         item.setOrder(this);
     }
 
-    // Helper method to remove an order item
     public void removeOrderItem(OrderItem item) {
         orderItems.remove(item);
         item.setOrder(null);

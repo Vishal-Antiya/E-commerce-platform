@@ -84,4 +84,16 @@ public class AdminService {
         adminRepository.deleteById(id);
         logger.info("Admin user with ID: {} deleted successfully.", id); // Log success
     }
+
+    public List<Admin> getAllAdmins() {
+        logger.info("Fetching all admin users with ROLE_ADMIN.");
+        List<Admin> allUsers = adminRepository.findAll();
+        List<Admin> admins = allUsers.stream()
+                .filter(user -> user.getRoles() != null && user.getRoles().contains("ROLE_ADMIN"))
+                .toList();
+        logger.info("Fetched {} admin users with ROLE_ADMIN.", admins.size());
+        return admins;
+    }
 }
+
+

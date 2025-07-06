@@ -12,13 +12,17 @@ spring:
           predicates:
             - Path=/api/users/**,/api/auth/**
         - id: admin-service-route # Add a new route for admin-service
-          uri: http://127.0.0.1:8086 # Route to admin-service
+          uri: http://127.0.0.1:8084 # Route to admin-service
           predicates:
               - Path=/api/admin/**
         - id: product-service-route # Add a new route for admin-service
           uri: http://127.0.0.1:8082 # Route to admin-service
           predicates:
             - Path=/api/products/**
+        - id: order-service-route # Add a new route for admin-service
+          uri: http://127.0.0.1:8083 # Route to admin-service
+          predicates:
+            - Path=/api/orders/**
     compatibility-verifier:
         enabled: false # Disable compatibility verifier
 

@@ -16,6 +16,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -25,30 +27,49 @@ public class SecurityConfig {
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
 
-    // You'll need a UserDetailsService, even if it's a simple one that
-    // just reconstructs a UserDetails object from username/roles in the token
-    // without hitting a DB for every request.
     @Autowired
     private UserDetailsService userDetailsService; // This will be your CustomUserDetailsService
+
+    // --- GLOBAL CORS CONFIGURATION ---
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                registry.addMapping("/**")
+                        .allowedOrigins(
+                                "http://localhost:3000",
+                                "http://localhost:8080",
+                                "http://127.0.0.1:3000",
+                                "http://127.0.0.1:8080"
+                        )
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedHeaders("*")
+                        .allowCredentials(true)
+                        .maxAge(3600);
+            }
+        };
+    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for JWT-based authentication
+                .cors(cors -> {}) // Enable CORS support in Spring Security
                 .authorizeHttpRequests(auth -> auth
                         // Allow access to Swagger UI and API docs
                         .requestMatchers(
+                                "/api/orders/cart",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/webjars/**"
                         ).permitAll()
-                        // Allow public access to specific order endpoints if needed (e.g., viewing public order status)
-                        // For a cart/order service, most endpoints will require authentication.
-                        .requestMatchers("/api/orders/**").authenticated() // Secure all order endpoints
-                        .anyRequest().authenticated() // All other requests require authentication
+                        // Secure all order endpoints
+                        .requestMatchers("/api/orders/**").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // No session needed for JWT
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

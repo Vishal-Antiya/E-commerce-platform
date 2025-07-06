@@ -72,4 +72,13 @@ public class AdminController {
         logger.info("Admin user with ID: {} deleted successfully via controller.", id); // Log success
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
+
+    @GetMapping("/allAdmins")
+    public ResponseEntity<List<Admin>> getAllAdmins() {
+        logger.info("Received request to get all admins (ROLE_ADMIN).");
+        List<Admin> admins = adminService.getAllAdmins();
+        logger.info("Successfully retrieved all admins (count: {}).", admins.size());
+        return new ResponseEntity<>(admins, HttpStatus.OK);
+    }
+
 }

@@ -31,7 +31,7 @@ public class ApiGatewayServiceApplication {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll() // Allow preflight requests
-                        .pathMatchers("/api/auth/**", "/api/users/**", "/api/products/**").permitAll()
+                        .pathMatchers("/api/auth/**", "/api/users/**", "/api/products/**","/api/admin/**").permitAll()
                         .anyExchange().authenticated()
                 )
                 .build();
